@@ -4,14 +4,25 @@ logger = logging.getLogger(__name__)
 import imageio
 from numba import jit
 import numpy as np
-import scipy
+from skimage.transform import resize
 
 __all__ = ['rmlp']
+
+def _laplacian_pyramid(G):
+    K = len(G)
+    LP = []
+    for k in range(0, K-1):
+        # upscale lower level
+        kp = resize(G[k+1], (k.shape[0]*2, k.shape[1]*2))
+        # Laplacian by difference of Gaussians
+        LP.append(G[k] - kp)
+    LP.append(G[K-1])
+    return LP
 
 def _gaussian_pyramid(I, K):
     pass
 
-def pyramid_fusion(I, K):
+def pyramid_fusion(images, M, K):
     """
     Fused by pyramid layers.
 
@@ -23,8 +34,12 @@ def pyramid_fusion(I, K):
         Level of the pyramid.
     """
     G = _gaussian_pyramid(I, K)
+    LP = _laplacian_pyramid(G)
+
+    #TODO fuse LP
     pass
 
+@jit
 def _density_distribution(n, M, r):
     """
     Calculate density distribution along specified circular regions.
@@ -85,6 +100,8 @@ def dbrg(n, M, r):
     for i, d in enumerate(D):
         R[d > V] = i+1
         V[d > V] = d[d > V]
+
+    #TODO process unlabeled pixels
 
     return R
 
@@ -150,3 +167,4 @@ def rmlp(images, T=7):
     M = _generate_init_mask(images, T)
     R = dbrg(len(images), M, 2)
     imageio.imwrite("data/R.tif", R.astype(np.uint8))
+    F = pyramid_fusion(images, R, 3)
