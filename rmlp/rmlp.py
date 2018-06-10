@@ -42,7 +42,7 @@ def _density_distribution(n, M, r):
     mp = np.zeros((2*r+1, 2*r+1)) # buffer area
     r2 = r*r
     c = 1. / (np.pi * r2) # normalize factor
-    for _n in range(n):
+    for _n in range(1, n+1):
         Dp = np.empty_like(M)
         # delta function
         Mp = (M == _n)
@@ -77,9 +77,15 @@ def dbrg(n, M, r):
     # mark seeds
     for i, d in enumerate(D):
         D[i] = D[i] > .5
+
+    # unlabeled
+    R = np.full_like(M, -1)
+    V = np.full_like(M, np.NINF)
+    n, m = M.shape
     for i, d in enumerate(D):
-        imageio.imwrite("data/D{}.tif".format(i), d.astype(np.uint8))
-    R = None
+        R[d > V] = i+1
+        V[d > V] = d[d > V]
+
     return R
 
 @jit
@@ -133,7 +139,7 @@ def _generate_init_mask(images, T):
     V = np.full_like(images[0], np.NINF)
     n, m = S[0].shape
     for i, s in enumerate(S):
-        M[abs(s) > V] = i
+        M[abs(s) > V] = i+1
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
@@ -143,3 +149,4 @@ def rmlp(images, T=7):
     """
     M = _generate_init_mask(images, T)
     R = dbrg(len(images), M, 2)
+    imageio.imwrite("data/R.tif", R.astype(np.uint8))
