@@ -1,8 +1,9 @@
 import os
 
 import imageio
+import numpy as np
 
-import rmlp
+from rmlp import rmlp
 
 def list_dataset_images(root):
     ground_truth = None
@@ -22,8 +23,8 @@ def list_dataset_images(root):
 
 def load_dataset_images(root):
     gt, bl = list_dataset_images(root)
-    gt = imageio.imread(gt)
-    bl[:] = [imageio.imread(f) for f in bl]
+    gt = imageio.imread(gt).astype(np.float32)
+    bl[:] = [imageio.imread(f).astype(np.float32) for f in bl]
 
     # sanity check
     s_gt = gt.shape
@@ -33,6 +34,9 @@ def load_dataset_images(root):
 
 def demo(root):
     gt, bl = load_dataset_images(root)
+    res = rmlp(bl)
 
 if __name__ == '__main__':
+    #demo("data/square")
     demo("data/checkerboard")
+    
