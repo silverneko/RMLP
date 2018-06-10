@@ -7,6 +7,49 @@ import scipy
 
 __all__ = ['rmlp']
 
+def _gaussian_pyramid(I, K):
+    pass
+
+def pyramid_fusion(I, K):
+    """
+    Fused by pyramid layers.
+
+    Parameters
+    ----------
+    I : np.ndarray
+        The source image.
+    K : int
+        Level of the pyramid.
+    """
+    G = _gaussian_pyramid(I, K)
+    pass
+
+def _density_distribution(M, r):
+    """
+    Calculate density distribution along specified circular regions.
+
+    Parameters
+    ----------
+    M : np.ndarray
+        The mask image.
+    r : float
+        Radius of circle that counted as spatial neighborhood.
+    """
+    pass
+
+def dbrg(M, r):
+    """
+    Segmentation by density-based region growing (DBRG).
+
+    Parameters
+    ----------
+    M : np.ndarray
+        The mask image.
+    """
+    D = _density_distribution(M, R)
+    R = None
+    return R
+
 def _modified_laplacian(I):
     """Calculate modified Laplacian."""
     J = np.empty_like(I)
