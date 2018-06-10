@@ -50,15 +50,15 @@ def _density_distribution(n, M, r):
         for y in range(0, n):
             for x in range(0, m):
                 v = 0
-                pu = min(y+2, n-1)
-                pd = max(y-2, 0)
-                pr = min(x+2, m-1)
-                pl = max(x-2, 0)
+                pu = min(y+r, n-1)
+                pd = max(y-r, 0)
+                pr = min(x+r, m-1)
+                pl = max(x-r, 0)
                 for yy in range(pd, pu+1):
                     for xx in range(pl, pr+1):
                         if Mp[yy, xx] and ((xx-x)*(xx-x) + (yy-y)*(yy-y) <= r2):
                             v += 1
-                Dp[y, x] = v / c
+                Dp[y, x] = v * c
         D.append(Dp)
     return D
 
@@ -74,8 +74,11 @@ def dbrg(n, M, r):
         The mask image.
     """
     D = _density_distribution(n, M, r)
+    # mark seeds
     for i, d in enumerate(D):
-        imageio.imwrite("data/D{}.tif".format(i), d)
+        D[i] = D[i] > .5
+    for i, d in enumerate(D):
+        imageio.imwrite("data/D{}.tif".format(i), d.astype(np.uint8))
     R = None
     return R
 
