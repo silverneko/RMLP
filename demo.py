@@ -37,5 +37,5 @@ def demo(root):
     res = rmlp(bl)
 
 if __name__ == '__main__':
-    demo("data/square")
-    #demo("data/checkerboard")
+    #demo("data/square")
+    demo("data/checkerboard")
