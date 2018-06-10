@@ -1,0 +1,12 @@
+name: rmlp
+
+dependencies:
+  # core
+  - python=3.6
+
+  # io
+  - imageio
+
+  # compute
+  - numpy
+  - scikit-image
