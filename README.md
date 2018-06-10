@@ -1,19 +1,54 @@
 # RMLP
 Multi-focus image fusion via region mosaicking on Laplacian pyramid. Jianguo Sun, Qilong Han, Liang Kou, Liguo Zhang, Kejia Zhang, and Zilong Jin "Multi-focus image fusion algorithm based on Laplacian pyramids".
 
+
 ## Checklist
 - [ ] Photo data
 - [ ] Synthetic data
-- [ ] Public dataset to compare with other approaches (not sure if doable)
-- [ ] Algorithm impl
+- [ ] Public dataset to compare with other approaches
+- [ ] Algorithm implementation
 - [ ] Video demo
 
-## Dataset
-Remember to cite if used any of the datasets.
 
+## Getting Started
+These instructions will get you a copy of the project up and running on your local machine for evaluation.
+
+### Prerequisites
+You should have a functional `conda` environment.
+
+### Building and Running
+Assuming you are in the repository root directory, create an environment by
+```
+conda env create -f environment.yml
+```
+This will create an environment called `rmlp`, activate it with
+```
+conda activate rmlp
+```
+Use
+```
+python demo.py
+```
+to start run the demo script.
+
+
+## Authors
+TBA
+
+
+## License
+TBA
+
+
+## References
+Remember to cite the following works if any of the datasets is used.
 - [Slavica Savic, "Multifocus Image Fusion Based on Empirical Mode Decomposition", Twentieth International Electrotechnical and Computer Science Conference, ERK 2011](http://dsp.etfbl.net/mif/):
-Most of the image pairs are not registered. No groundtruth. Usable but not ideal.
+    - Most of the image pairs are not registered.
+    - No ground-truth.
+    - Usable but not ideal.
 - [Lytro Multi-focus Image Dataset](https://www.researchgate.net/publication/291522937_Lytro_Multi-focus_Image_Dataset):
-All image pairs are registered. No groundtruth.
+    - All image pairs are registered.
+    - No ground-truth.
 - [A classification and fuzzy-based approach for digital multi-focus image fusion August 2011 Jamal Saeedi · Karim Faez](https://www.researchgate.net/publication/273000238_multi-focus_image_dataset):
-Some of the image pairs are not registered. Some of the image pairs have groundtruth.
+    - Some of the image pairs are not registered.
+    - Some of the image pairs have ground-truth.
