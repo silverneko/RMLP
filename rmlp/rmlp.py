@@ -6,6 +6,8 @@ import imageio
 from numba import jit
 import numpy as np
 import skimage
+import skimage.io
+import skimage.draw
 from skimage.transform import resize
 from scipy import ndimage as ndi
 
@@ -124,7 +126,8 @@ def pyramid_fusion(images, M, K):
 
     for lp in LP:
         fused = np.zeros_like(lp[0])
-        M = resize(M, lp[0].shape, order=0, mode='edge', anti_aliasing=False)
+        M = resize(M, lp[0].shape, preserve_range=True,
+                   order=0, mode='edge', anti_aliasing=False)
         for (i, l) in zip(range(1, 1+len(lp)), lp):
             fused[M == i] = l[M == i]
         F.append(fused)
@@ -171,26 +174,22 @@ def _density_distribution(n, M, r):
         Radius of circle that counted as spatial neighborhood.
     """
     D = []
-    mp = np.zeros((2*r+1, 2*r+1)) # buffer area
-    r2 = r*r
-    c = 1. / (np.pi * r2) # normalize factor
+
+    rr, cc = skimage.draw.circle(r, r, r+1)
     for _n in range(1, n+1):
         Dp = np.empty_like(M)
         # delta function
         Mp = (M == _n)
+        Mp = np.pad(Mp, [(r, r), (r, r)], mode='constant')
+        Ar = np.pad(np.ones(Mp.shape), [(r, r), (r, r)], mode='constant')
         n, m = M.shape
         for y in range(0, n):
             for x in range(0, m):
-                v = 0
-                pu = min(y+r, n-1)
-                pd = max(y-r, 0)
-                pr = min(x+r, m-1)
-                pl = max(x-r, 0)
-                for yy in range(pd, pu+1):
-                    for xx in range(pl, pr+1):
-                        if Mp[yy, xx] and ((xx-x)*(xx-x) + (yy-y)*(yy-y) <= r2):
-                            v += 1
-                Dp[y, x] = v * c
+                yy = rr + y
+                xx = cc + x
+                v = np.sum(Mp[yy, xx])
+                c = np.sum(Ar[yy, xx])
+                Dp[y, x] = 1.0 * v / c
         D.append(Dp)
     return D
 
@@ -263,6 +262,7 @@ def dbrg(n, M, r):
     for (y, x), v in zip(ps, psv):
         R[y, x] = v
 
+    assert(np.all(R != -1))
     return R
 
 @jit
@@ -326,6 +326,5 @@ def rmlp(images, T=1e-5):
     """
     M = _generate_init_mask(images, T)
     R = dbrg(len(images), M, 2)
-    imageio.imwrite("data/R.tif", R)
     F = pyramid_fusion(images, R, 3)
     return F
