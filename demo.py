@@ -36,12 +36,12 @@ def load_dataset_images(root):
         raise ValueError("blurred image has a different size")
     return gt, bl
 
-def demo(root):
+def demo(root, T=None):
     gt, bl = load_dataset_images(root)
-    res = rmlp(bl)
+    res = rmlp(bl, T)
     return res
 
 if __name__ == '__main__':
     #demo("data/square")
-    res = demo("data/checkerboard")
+    res = demo("data/checkerboard", T=7/255.)
     imsave('res.png', res)
