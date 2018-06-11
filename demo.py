@@ -49,9 +49,9 @@ def load_dataset_images(root):
         raise ValueError("blurred image has a different size")
     return gt, bl
 
-def demo(root, T=None):
+def demo(root):
     gt, bl = load_dataset_images(root)
-    res = rmlp(bl, T)
+    res = rmlp(bl)
     return res
 
 if __name__ == '__main__':
