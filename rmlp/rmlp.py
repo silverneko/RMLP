@@ -7,7 +7,6 @@ from numba import jit
 import numpy as np
 import skimage
 from skimage.transform import resize
-from skimage.util import img_as_float
 from scipy import ndimage as ndi
 
 __all__ = ['rmlp']
@@ -71,9 +70,6 @@ def _pyramid_laplacian(image, max_layer=-1, downscale=2, sigma=None, order=1,
     #_check_factor(downscale)
     assert(downscale > 1)
 
-    # cast to float for consistent data type in pyramid
-    image = img_as_float(image)
-
     if sigma is None:
         # automatically determine sigma which covers > 99% of distribution
         sigma = 2 * downscale / 6.0
@@ -108,12 +104,14 @@ def _pyramid_laplacian(image, max_layer=-1, downscale=2, sigma=None, order=1,
 
 def pyramid_fusion(images, M, K):
     """
-    Fused by pyramid layers.
+    Fused pyramid layers using the mask.
 
     Parameters
     ----------
     I : np.ndarray
         The source image.
+    M : np.ndarray
+        The masked image.
     K : int
         Level of the pyramid.
     """
@@ -140,6 +138,23 @@ def pyramid_fusion(images, M, K):
         fused_F = smoothed_F + f
 
     return fused_F
+
+@jit
+def _generate_seeds(D, t=0.5):
+    """
+    Find seed pixels by density distributions.
+
+    Parameters
+    ----------
+    D : np.ndarray
+        Density distribution of supplied images.
+    t : float
+        Threshold for seed pixels, default to 0.5
+    """
+    S = D[0].copy()
+    for d in D[1:]:
+        S[d > S] = d[d > S]
+    return S > t
 
 @jit
 def _density_distribution(n, M, r):
@@ -191,12 +206,38 @@ def dbrg(n, M, r):
         The mask image.
     """
     D = _density_distribution(n, M, r)
-    # mark seeds
     for i, d in enumerate(D):
-        D[i] = D[i] > .5
+        imageio.imwrite("data/D{}.tif".format(i), d.astype(np.float32))
+    S = _generate_seeds(D)
 
     # unlabeled
-    R = np.full_like(M, -1)
+    R = np.zeros_like(M)
+    V = np.full(M.shape, np.NINF, dtype=np.float32)
+
+    # label by density map
+    for i, d in enumerate(D):
+        R[(d > V) & S] = i+1
+        V[(d > V) & S] = d[(d > V) & S]
+
+    # label by density connectivity #TODO
+    n, m = M.shape
+    v = []
+    for y in range(0, n):
+        for x in range(0, m):
+            v = 0
+            pu = min(y+r, n-1)
+            pd = max(y-r, 0)
+            pr = min(x+r, m-1)
+            pl = max(x-r, 0)
+            for yy in range(pd, pu+1):
+                for xx in range(pl, pr+1):
+                    if Mp[yy, xx] and ((xx-x)*(xx-x) + (yy-y)*(yy-y) <= r2):
+                        v += 1
+            Dp[y, x] = v * c
+    imageio.imwrite("data/R.tif", R)
+
+    raise RuntimeError
+
     V = np.full_like(M, np.NINF)
     n, m = M.shape
     for i, d in enumerate(D):
@@ -262,15 +303,12 @@ def _generate_init_mask(images, T):
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
-def rmlp(images, T=0.07):
+def rmlp(images, T=0.007):
     """
     Perform region-based Laplacian pyramids multi-focus image fusion.
     """
     M = _generate_init_mask(images, T)
-    imageio.imwrite("data/M.tif", M)
-
-    raise RuntimeError
-
     R = dbrg(len(images), M, 2)
+    imageio.imwrite("data/M.tif", M)
     F = pyramid_fusion(images, R, 3)
     return F
