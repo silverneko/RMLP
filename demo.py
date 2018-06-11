@@ -1,11 +1,24 @@
+import logging
 import os
 
 import imageio
 import numpy as np
 from skimage.io import imread, imsave
-from skimage.util import img_as_float
+from skimage.util import img_as_float32
 
 from rmlp import rmlp
+
+#####
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    '%(levelname).1s %(asctime)s %(message)s', '%H:%M:%S'
+)
+handler.setFormatter(formatter)
+logging.basicConfig(level=logging.DEBUG, handlers=[handler])
+logger = logging.getLogger(__name__)
+
+#####
 
 def list_dataset_images(root):
     ground_truth = None
@@ -26,9 +39,9 @@ def list_dataset_images(root):
 def load_dataset_images(root):
     gt, bl = list_dataset_images(root)
     gt = imageio.imread(gt)
-    gt = img_as_float(gt)
+    gt = img_as_float32(gt)
     bl = [imageio.imread(f) for f in bl]
-    bl = [img_as_float(f) for f in bl]
+    bl = [img_as_float32(f) for f in bl]
 
     # sanity check
     s_gt = gt.shape
