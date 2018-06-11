@@ -254,7 +254,7 @@ def _generate_init_mask(images, T):
     for image in images:
         S.append(sml(image, T))
 
-    M = np.full_like(images[0], -1)
+    M = np.full(images[0].shape, -1, dtype=np.uint32)
     V = np.full_like(images[0], np.NINF)
     n, m = S[0].shape
     for i, s in enumerate(S):
@@ -262,11 +262,15 @@ def _generate_init_mask(images, T):
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
-def rmlp(images, T=7):
+def rmlp(images, T=0.07):
     """
     Perform region-based Laplacian pyramids multi-focus image fusion.
     """
     M = _generate_init_mask(images, T)
+    imageio.imwrite("data/M.tif", M)
+
+    raise RuntimeError
+
     R = dbrg(len(images), M, 2)
-    F = pyramid_fusion(images, R, 10)
+    F = pyramid_fusion(images, R, 3)
     return F
