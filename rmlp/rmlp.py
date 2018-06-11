@@ -218,11 +218,11 @@ def dbrg(n, M, r):
     for i, d in enumerate(D):
         R[(d > V) & S] = i+1
         V[(d > V) & S] = d[(d > V) & S]
-    imageio.imwrite("data/R1.tif", R)
 
     # label by density connectivity
     n, m = M.shape
     v = np.empty(len(D)+1, dtype=np.float32)
+    ps = [] # reset of the pixel coordinates
     for y in range(0, n):
         for x in range(0, m):
             if R[y, x] > 0:
@@ -237,9 +237,31 @@ def dbrg(n, M, r):
                     if ((xx-x)*(xx-x) + (yy-y)*(yy-y) <= r*r):
                         v[R[yy, xx]] += 1
             R[y, x] = v.argmax()
+            if R[y, x] == 0:
+                ps.append((y, x))
 
     # label by nearest neighbor
-    
+    psv = [] # filled result
+    for y, x in ps:
+        r = 1
+        while True:
+            pu = min(y+r, n-1)
+            pd = max(y-r, 0)
+            pr = min(x+r, m-1)
+            pl = max(x-r, 0)
+            v = []
+            for yy in range(pd, pu+1):
+                for xx in range(pl, pr+1):
+                    if R[yy, xx] > 0:
+                        v.append((R[yy, xx], (xx-x)*(xx-x) + (yy-y)*(yy-y)))
+            if len(v) == 0:
+                r += 1
+            else:
+                v.sort(key=lambda p: p[1])
+                psv.append(v[0][0])
+                break
+    for (y, x), v in zip(ps, psv):
+        R[y, x] = v
 
     return R
 
