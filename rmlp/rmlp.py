@@ -203,6 +203,8 @@ def dbrg(n, M, r):
         Number of blurred images.
     M : np.ndarray
         The mask image.
+    r : int
+        Density connectivity search radius.
     """
     D = _density_distribution(n, M, r)
     for i, d in enumerate(D):
@@ -267,7 +269,14 @@ def dbrg(n, M, r):
 
 @jit
 def _modified_laplacian(I):
-    """Calculate modified Laplacian."""
+    """
+    Calculate modified Laplacian.
+
+    Parameters
+    ----------
+    I : np.ndarray
+        Supplied raw image.
+    """
     J = np.empty_like(I)
     n, m = I.shape
     for y in range(0, n):
@@ -308,6 +317,16 @@ def sml(I, T):
     return S
 
 def _generate_init_mask(images, T):
+    """
+    Generate mask estimation based on SML.
+
+    Parameters
+    ----------
+    images : list of np.ndarray
+        List of original raw images.
+    T : float
+        Blur level criteria.
+    """
     S = []
     for image in images:
         S.append(sml(image, T))
