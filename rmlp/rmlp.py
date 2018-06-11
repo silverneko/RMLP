@@ -20,6 +20,7 @@ def _laplacian_pyramid(G):
     return LP
 
 def _gaussian_pyramid(I, K):
+    #TODO the actual pyramid with downsampling, factor of 2^K
     pass
 
 def pyramid_fusion(images, M, K):
@@ -166,5 +167,5 @@ def rmlp(images, T=7):
     """
     M = _generate_init_mask(images, T)
     R = dbrg(len(images), M, 2)
-    imageio.imwrite("data/R.tif", R.astype(np.uint8))
     F = pyramid_fusion(images, R, 3)
+    return F

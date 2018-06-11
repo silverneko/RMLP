@@ -10,3 +10,6 @@ dependencies:
   # compute
   - numpy
   - scikit-image
+
+  # parallel
+  - numba

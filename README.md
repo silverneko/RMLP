@@ -30,7 +30,7 @@ Use
 ```
 python demo.py
 ```
-to start run the demo script.
+to run the demo script.
 
 
 ## Authors
