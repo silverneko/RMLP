@@ -56,10 +56,5 @@ def demo(root, T=None):
 
 if __name__ == '__main__':
     #demo("data/square")
-<<<<<<< HEAD
     res = demo("data/checkerboard")
     imsave("data/result.png", res)
-=======
-    res = demo("data/checkerboard", T=7/255.)
-    imsave('res.png', res)
->>>>>>> b04df8b6d05071673cb0198ec057438d22a88df4
