@@ -57,4 +57,4 @@ def demo(root):
 if __name__ == '__main__':
     #demo("data/square")
     res = demo("data/checkerboard")
-    imsave('res.png', res)
+    imsave("data/result.png", res)

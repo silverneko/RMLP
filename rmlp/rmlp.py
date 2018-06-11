@@ -320,12 +320,12 @@ def _generate_init_mask(images, T):
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
-def rmlp(images, T=0.007):
+def rmlp(images, T=1e-5):
     """
     Perform region-based Laplacian pyramids multi-focus image fusion.
     """
     M = _generate_init_mask(images, T)
     R = dbrg(len(images), M, 2)
-    imageio.imwrite("data/M.tif", M)
+    imageio.imwrite("data/R.tif", R)
     F = pyramid_fusion(images, R, 3)
     return F
