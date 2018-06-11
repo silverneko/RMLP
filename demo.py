@@ -2,6 +2,8 @@ import os
 
 import imageio
 import numpy as np
+from skimage.io import imread, imsave
+from skimage.util import img_as_float
 
 from rmlp import rmlp
 
@@ -23,8 +25,10 @@ def list_dataset_images(root):
 
 def load_dataset_images(root):
     gt, bl = list_dataset_images(root)
-    gt = imageio.imread(gt).astype(np.float32)
-    bl[:] = [imageio.imread(f).astype(np.float32) for f in bl]
+    gt = imageio.imread(gt)
+    gt = img_as_float(gt)
+    bl = [imageio.imread(f) for f in bl]
+    bl = [img_as_float(f) for f in bl]
 
     # sanity check
     s_gt = gt.shape
@@ -35,7 +39,9 @@ def load_dataset_images(root):
 def demo(root):
     gt, bl = load_dataset_images(root)
     res = rmlp(bl)
+    return res
 
 if __name__ == '__main__':
     #demo("data/square")
-    demo("data/checkerboard")
+    res = demo("data/checkerboard")
+    imsave('res.png', res)
