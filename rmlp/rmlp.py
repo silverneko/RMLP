@@ -104,7 +104,7 @@ def _pyramid_laplacian(image, max_layer=-1, downscale=2, sigma=None, order=1,
         else:
             yield resized_image - smoothed_image
 
-def pyramid_fusion(images, M, K):
+def pyramid_fusion(images, M, K, sigma=None):
     """
     Fused pyramid layers using the mask.
 
@@ -118,10 +118,11 @@ def pyramid_fusion(images, M, K):
         Level of the pyramid.
     """
     # automatically determine sigma which covers > 99% of distribution
-    downscale = 2
-    sigma = 2 * downscale / 6.0
+    if sigma is None:
+        downscale = 2
+        sigma = 2 * downscale / 6.0
 
-    LP = zip(*[list(_pyramid_laplacian(img, max_layer=K)) for img in images])
+    LP = zip(*[list(_pyramid_laplacian(img, max_layer=K, sigma=sigma)) for img in images])
     F = []
 
     for lp in LP:
@@ -177,7 +178,7 @@ def _density_distribution(n, M, r):
 
     rr, cc = skimage.draw.circle(r, r, r+1)
     for _n in range(1, n+1):
-        Dp = np.empty_like(M)
+        Dp = np.zeros(M.shape)
         # delta function
         Mp = (M == _n)
         Mp = np.pad(Mp, [(r, r), (r, r)], mode='constant')
@@ -193,7 +194,7 @@ def _density_distribution(n, M, r):
         D.append(Dp)
     return D
 
-def dbrg(n, M, r):
+def dbrg(images, T, r):
     """
     Segmentation by density-based region growing (DBRG).
 
@@ -206,19 +207,28 @@ def dbrg(n, M, r):
     r : int
         Density connectivity search radius.
     """
+    n = len(images)
+    M = _generate_init_mask(images, T)
     D = _density_distribution(n, M, r)
     for i, d in enumerate(D):
         imageio.imwrite("data/D{}.tif".format(i), d.astype(np.float32))
     S = _generate_seeds(D)
 
     # unlabeled
-    R = np.zeros_like(M)
+    R = np.full(M.shape, 0, dtype=np.uint32)
     V = np.full(M.shape, np.NINF, dtype=np.float32)
 
     # label by density map
     for i, d in enumerate(D):
         R[(d > V) & S] = i+1
         V[(d > V) & S] = d[(d > V) & S]
+
+    """
+    skimage.io.imsave('d0.png', (D[0] > 0.5) * 255)
+    skimage.io.imsave('d1.png', (D[1] > 0.5) * 255)
+    skimage.io.imsave('m.png', (M == 1) * 255 + (M == 0) * 128)
+    skimage.io.imsave('r2.png', (R == 1) * 255 + (R == 0) * 128)
+    """
 
     # label by density connectivity
     n, m = M.shape
@@ -264,7 +274,7 @@ def dbrg(n, M, r):
     for (y, x), v in zip(ps, psv):
         R[y, x] = v
 
-    assert(np.all(R != -1))
+    assert(np.all(R != 0))
     return R
 
 @jit
@@ -331,7 +341,7 @@ def _generate_init_mask(images, T):
     for image in images:
         S.append(sml(image, T))
 
-    M = np.full(images[0].shape, -1, dtype=np.uint32)
+    M = np.full(images[0].shape, 0, dtype=np.uint32)
     V = np.full_like(images[0], np.NINF)
     n, m = S[0].shape
     for i, s in enumerate(S):
@@ -339,11 +349,11 @@ def _generate_init_mask(images, T):
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
-def rmlp(images, T=1e-5):
+def rmlp(images, T=5/255.):
     """
     Perform region-based Laplacian pyramids multi-focus image fusion.
     """
-    M = _generate_init_mask(images, T)
-    R = dbrg(len(images), M, 2)
-    F = pyramid_fusion(images, R, 3)
+    R = dbrg(images, T, 4)
+    #skimage.io.imsave('r.png', (R == 1) * 255)
+    F = pyramid_fusion(images, R, 7)
     return F
