@@ -3,6 +3,7 @@ import os
 
 import imageio
 import numpy as np
+from skimage.color import rgb2gray
 from skimage.io import imread, imsave
 from skimage.util import img_as_float32
 
@@ -38,15 +39,25 @@ def list_dataset_images(root):
 
 def load_dataset_images(root):
     gt, bl = list_dataset_images(root)
-    gt = imageio.imread(gt)
-    gt = img_as_float32(gt)
-    bl = [imageio.imread(f) for f in bl]
-    bl = [img_as_float32(f) for f in bl]
 
-    # sanity check
-    s_gt = gt.shape
-    if any([im.shape != s_gt for im in bl]):
-        raise ValueError("blurred image has a different size")
+    for i, f in enumerate(bl):
+        I = imageio.imread(f)
+        if I.ndim == 3:
+            I = rgb2gray(I)
+        I = img_as_float32(I)
+        bl[i] = I
+
+    if gt:
+        gt = imageio.imread(gt)
+        if gt.ndim == 3:
+            gt = rgb2gray(gt)
+        gt = img_as_float32(gt)
+
+        # sanity check
+        s_gt = gt.shape
+        if any([im.shape != s_gt for im in bl]):
+            raise ValueError("blurred image has a different size")
+
     return gt, bl
 
 def demo(root):
@@ -56,5 +67,6 @@ def demo(root):
 
 if __name__ == '__main__':
     #demo("data/square")
-    res = demo("data/checkerboard")
-    imsave("data/result.png", res)
+    root = "data/slika2"
+    res = demo(root)
+    imsave(os.path.join(root, "result.bmp"), res)
