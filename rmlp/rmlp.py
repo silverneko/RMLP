@@ -218,33 +218,28 @@ def dbrg(n, M, r):
     for i, d in enumerate(D):
         R[(d > V) & S] = i+1
         V[(d > V) & S] = d[(d > V) & S]
+    imageio.imwrite("data/R1.tif", R)
 
-    # label by density connectivity #TODO
+    # label by density connectivity
     n, m = M.shape
-    v = []
+    v = np.empty(len(D)+1, dtype=np.float32)
     for y in range(0, n):
         for x in range(0, m):
-            v = 0
+            if R[y, x] > 0:
+                continue
             pu = min(y+r, n-1)
             pd = max(y-r, 0)
             pr = min(x+r, m-1)
             pl = max(x-r, 0)
+            v.fill(0)
             for yy in range(pd, pu+1):
                 for xx in range(pl, pr+1):
-                    if Mp[yy, xx] and ((xx-x)*(xx-x) + (yy-y)*(yy-y) <= r2):
-                        v += 1
-            Dp[y, x] = v * c
-    imageio.imwrite("data/R.tif", R)
+                    if ((xx-x)*(xx-x) + (yy-y)*(yy-y) <= r*r):
+                        v[R[yy, xx]] += 1
+            R[y, x] = v.argmax()
 
-    raise RuntimeError
-
-    V = np.full_like(M, np.NINF)
-    n, m = M.shape
-    for i, d in enumerate(D):
-        R[d > V] = i+1
-        V[d > V] = d[d > V]
-
-    #TODO process unlabeled pixels
+    # label by nearest neighbor
+    
 
     return R
 
