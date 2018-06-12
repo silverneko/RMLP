@@ -344,7 +344,7 @@ def _generate_init_mask(images, T):
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
-def rmlp(images, T=5/255.):
+def rmlp(images, T=1/255.):
     """
     Perform region-based Laplacian pyramids multi-focus image fusion.
     """
