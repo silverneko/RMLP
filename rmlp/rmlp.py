@@ -6,7 +6,6 @@ import imageio
 from numba import jit
 import numpy as np
 import skimage
-import skimage.io
 import skimage.draw
 from skimage.transform import resize
 from scipy import ndimage as ndi
@@ -33,6 +32,7 @@ def _pyramid_laplacian(image, max_layer=-1, downscale=2, sigma=None, order=1,
     images is `max_layer + 1`. In case all layers are computed, the last image
     is either a one-pixel image or the image where the reduction does not
     change its shape.
+
     Parameters
     ----------
     image : ndarray
@@ -59,10 +59,12 @@ def _pyramid_laplacian(image, max_layer=-1, downscale=2, sigma=None, order=1,
         channels or another spatial dimension. By default, is set to True for
         3D (2D+color) inputs, and False for others. Starting in release 0.16,
         this will always default to False.
+
     Returns
     -------
     pyramid : generator
         Generator yielding pyramid layers as float images.
+
     References
     ----------
     .. [1] http://web.mit.edu/persci/people/adelson/pub_pdfs/pyramid83.pdf
@@ -223,13 +225,6 @@ def dbrg(images, T, r):
         R[(d > V) & S] = i+1
         V[(d > V) & S] = d[(d > V) & S]
 
-    """
-    skimage.io.imsave('d0.png', (D[0] > 0.5) * 255)
-    skimage.io.imsave('d1.png', (D[1] > 0.5) * 255)
-    skimage.io.imsave('m.png', (M == 1) * 255 + (M == 0) * 128)
-    skimage.io.imsave('r2.png', (R == 1) * 255 + (R == 0) * 128)
-    """
-
     # label by density connectivity
     n, m = M.shape
     v = np.empty(len(D)+1, dtype=np.float32)
@@ -354,6 +349,5 @@ def rmlp(images, T=5/255.):
     Perform region-based Laplacian pyramids multi-focus image fusion.
     """
     R = dbrg(images, T, 4)
-    #skimage.io.imsave('r.png', (R == 1) * 255)
     F = pyramid_fusion(images, R, 7)
     return F

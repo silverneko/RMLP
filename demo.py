@@ -67,6 +67,6 @@ def demo(root):
 
 if __name__ == '__main__':
     #demo("data/square")
-    root = "data/slika2"
+    root = "data/mt_sub"
     res = demo(root)
-    imsave(os.path.join(root, "result.bmp"), res)
+    imageio.imwrite(os.path.join(root, "result.tif"), res)
