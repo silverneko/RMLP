@@ -1,10 +1,13 @@
 import logging
 import os
+import traceback
 
 import imageio
 import numpy as np
 from skimage.color import rgb2gray
+from skimage.exposure import rescale_intensity
 from skimage.io import imread, imsave
+from skimage.measure import compare_ssim as ssim
 from skimage.util import img_as_float32
 
 from rmlp import rmlp
@@ -41,13 +44,14 @@ def load_dataset_images(root):
     gt, bl = list_dataset_images(root)
 
     for i, f in enumerate(bl):
+        logger.debug("reading '{}'".format(f))
         I = imageio.imread(f)
         if I.ndim == 3:
             I = rgb2gray(I)
         I = img_as_float32(I)
         bl[i] = I
 
-    if gt:
+    if gt is not None:
         gt = imageio.imread(gt)
         if gt.ndim == 3:
             gt = rgb2gray(gt)
@@ -62,11 +66,30 @@ def load_dataset_images(root):
 
 def demo(root):
     gt, bl = load_dataset_images(root)
-    res = rmlp(bl)
-    return res
+    result = rmlp(bl)
+
+    # calculate measures if ground truth exists
+    if gt is not None:
+        for i, bb in enumerate(bl):
+            v_mse = np.linalg.norm(bb - gt)
+            v_ssim = ssim(bb, gt, data_range=(bb.max()-bb.min()))
+            logger.info("blurred {}".format(i))
+            logger.info(".. MSE = {:.4f}, SSIM = {:.4f}".format(v_mse, v_ssim))
+        v_mse = np.linalg.norm(result - gt)
+        v_ssim = ssim(result, gt, data_range=(result.max()-result.min()))
+        logger.info("result")
+        logger.info(".. MSE = {:.4f}, SSIM = {:.4f}".format(v_mse, v_ssim))
+
+    return result
 
 if __name__ == '__main__':
-    #demo("data/square")
-    root = "data/mt_sub"
-    res = demo(root)
-    imageio.imwrite(os.path.join(root, "result.tif"), res)
+    root = "data/mt"
+    try:
+        result = demo(root)
+
+        # convert to uint8 for preview
+        result = rescale_intensity(result, out_range=(0, 2**8-1))
+        result = result.astype(np.uint8)
+        imageio.imwrite(os.path.join(root, "result.png"), result)
+    except Exception as e:
+        logger.error(traceback.format_exc())
