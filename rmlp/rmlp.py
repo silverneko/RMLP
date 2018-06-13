@@ -212,8 +212,6 @@ def dbrg(images, T, r):
     n = len(images)
     M = _generate_init_mask(images, T)
     D = _density_distribution(n, M, r)
-    for i, d in enumerate(D):
-        imageio.imwrite("data/D{}.tif".format(i), d.astype(np.float32))
     S = _generate_seeds(D)
 
     # unlabeled
@@ -344,10 +342,19 @@ def _generate_init_mask(images, T):
         V[abs(s) > V] = s[abs(s) > V]
     return M
 
-def rmlp(images, T=1/255.):
+def rmlp(images, T=1/255., r=4, K=7):
     """
     Perform region-based Laplacian pyramids multi-focus image fusion.
+
+    Parameters
+    ----------
+    T : float
+        Initial mask threshold.
+    r : int
+        Density connectivity search radius.
+    K : int
+        Level of the pyramids.
     """
-    R = dbrg(images, T, 4)
-    F = pyramid_fusion(images, R, 7)
+    R = dbrg(images, T, r)
+    F = pyramid_fusion(images, R, K)
     return F

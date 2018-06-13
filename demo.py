@@ -66,7 +66,7 @@ def load_dataset_images(root):
 
 def demo(root):
     gt, bl = load_dataset_images(root)
-    result = rmlp(bl)
+    result = rmlp(bl, T=1/255., r=4, K=11)
 
     # calculate measures if ground truth exists
     if gt is not None:
@@ -79,6 +79,8 @@ def demo(root):
         v_ssim = ssim(result, gt, data_range=(result.max()-result.min()))
         logger.info("result")
         logger.info(".. MSE = {:.4f}, SSIM = {:.4f}".format(v_mse, v_ssim))
+    else:
+        logger.info("no ground truth for quality evaluation")
 
     return result
 
