@@ -3,14 +3,6 @@
 > _Jianguo Sun, Qilong Han, Liang Kou, Liguo Zhang, Kejia Zhang, and Zilong Jin_
 
 
-## Checklist
-- [ ] Photo data
-- [ ] Synthetic data
-- [ ] Public dataset to compare with other approaches
-- [ ] Algorithm implementation
-- [ ] Video demo
-
-
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for evaluation.
 
@@ -34,7 +26,8 @@ to run the demo script.
 
 
 ## Authors
-TBA
+- [Liu, Yen-Ting](https://github.com/liuyenting/)
+- [Chiang, Yi-Yo](https://github.com/silverneko/)
 
 
 ## License
