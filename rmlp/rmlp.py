@@ -54,11 +54,6 @@ def _pyramid_laplacian(image, max_layer=-1, downscale=2, sigma=None, order=1,
         cval is the value when mode is equal to 'constant'.
     cval : float, optional
         Value to fill past edges of input if mode is 'constant'.
-    multichannel : bool, optional
-        Whether the last axis of the image is to be interpreted as multiple
-        channels or another spatial dimension. By default, is set to True for
-        3D (2D+color) inputs, and False for others. Starting in release 0.16,
-        this will always default to False.
 
     Returns
     -------
@@ -348,6 +343,8 @@ def rmlp(images, T=1/255., r=4, K=7):
 
     Parameters
     ----------
+    images : list of np.ndarray
+        Blurred images.
     T : float
         Initial mask threshold.
     r : int
