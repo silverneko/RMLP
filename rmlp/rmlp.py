@@ -13,7 +13,7 @@ __all__ = ['rmlp']
 
 def _smooth(image, sigma, mode, cval):
     """Return image with each channel smoothed by the Gaussian filter."""
-    smoothed = np.empty(image.shape, dtype=np.double)
+    smoothed = np.empty(image.shape, dtype=np.float32)
 
     # apply Gaussian filter to all channels independently
     ndi.gaussian_filter(image, sigma, output=smoothed,
@@ -355,4 +355,5 @@ def rmlp(images, T=1/255., r=4, K=7):
     """
     R = dbrg(images, T, r)
     F = pyramid_fusion(images, R, K)
+    logger.debug("F.dtype = {}".format(F.dtype))
     return F
