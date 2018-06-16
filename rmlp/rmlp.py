@@ -6,7 +6,6 @@ import imageio
 from numba import jit
 import numpy as np
 import skimage
-import skimage.draw
 from skimage.transform import resize
 from scipy import ndimage as ndi
 
@@ -157,6 +156,11 @@ def _generate_seeds(D, t=0.5):
         S[d > S] = d[d > S]
     return S > t
 
+def _disk(radius, dtype=np.uint8):
+    L = np.arange(-radius + 1, radius)
+    X, Y = np.meshgrid(L, L)
+    return np.asarray((X ** 2 + Y ** 2) < radius ** 2, dtype=dtype)
+
 @jit
 def _density_distribution(n, M, r):
     """
@@ -172,22 +176,15 @@ def _density_distribution(n, M, r):
         Radius of circle that counted as spatial neighborhood.
     """
     D = []
-
-    rr, cc = skimage.draw.circle(r, r, r+1)
+    selem = _disk(r)
+    # normalization term: c
+    Ar = np.ones(M.shape)
+    c = ndi.convolve(Ar, selem, mode='constant', cval=0)
     for _n in range(1, n+1):
-        Dp = np.zeros(M.shape)
         # delta function
-        Mp = (M == _n)
-        Mp = np.pad(Mp, [(r, r), (r, r)], mode='constant')
-        Ar = np.pad(np.ones(Mp.shape), [(r, r), (r, r)], mode='constant')
-        n, m = M.shape
-        for y in range(0, n):
-            for x in range(0, m):
-                yy = rr + y
-                xx = cc + x
-                v = np.sum(Mp[yy, xx])
-                c = np.sum(Ar[yy, xx])
-                Dp[y, x] = 1.0 * v / c
+        Mp = (M == _n).astype(int)
+        v = ndi.convolve(Mp, selem, mode='constant', cval=0)
+        Dp = v / c
         D.append(Dp)
     return D
 
@@ -208,6 +205,9 @@ def dbrg(images, T, r):
     M = _generate_init_mask(images, T)
     D = _density_distribution(n, M, r)
     S = _generate_seeds(D)
+
+    # make sure there is at least one seed
+    assert(S.any())
 
     # unlabeled
     R = np.full(M.shape, 0, dtype=np.uint32)
@@ -262,6 +262,7 @@ def dbrg(images, T, r):
     for (y, x), v in zip(ps, psv):
         R[y, x] = v
 
+    # make sure each position is assigned a mask value
     assert(np.all(R != 0))
     return R
 
